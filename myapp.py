@@ -190,17 +190,17 @@ fig_active.add_tools(HoverTool(tooltips=tooltips_active))
 fig_dead.add_tools(HoverTool(tooltips=tooltips_new_cases))
 
 #menu dropdown
-# menu = [("Total Cases","fig_active"),("Deaths","fig_dead")]
-# dropdown = Dropdown(button_type = "success", menu = menu)
-# dropdown.js_on_event("menu_item_click", CustomJS(code="console.log('dropdown:'+this.item, this.toString())"))
+menu = [("Total Cases","tooltips_new_cases"),("Deaths","tooltips_dead")]
+dropdown = Dropdown(button_type = "success", menu = menu)
+dropdown.js_on_event("menu_item_click", CustomJS(code="console.log('dropdown:'+this.item, this.toString())"))
 
 # dropdown
-panel_new_cases = Panel(child = fig_new_cases, title='New Cases')
-panel_active = Panel(child = fig_active, title='Active Cases')
-panel_dead = Panel(child = fig_dead, title='Deaths')
+#panel_new_cases = Panel(child = fig_new_cases, title='New Cases')
+#panel_active = Panel(child = fig_active, title='Active Cases')
+#panel_dead = Panel(child = fig_dead, title='Deaths')
 
 #assign tabs
-tabs = Tabs(tabs=[panel_new_cases, panel_active, panel_dead])
+# tabs = Tabs(tabs=[panel_new_cases, panel_active, panel_dead])
 
 # Visualize
-show(tabs)
+show(dropdown)
