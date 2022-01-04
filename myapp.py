@@ -8,6 +8,8 @@ Original file is located at
 """
 
 # Data handling
+from bokeh.core.property.dataspec import value
+from bokeh.models.layouts import Column
 import pandas as pd
 import numpy as np
 
@@ -15,16 +17,15 @@ import numpy as np
 
 # Bokeh libraries
 from bokeh.io import output_file, output_notebook
-from bokeh.io import show
+from bokeh.io import show,curdoc
 from bokeh.plotting import figure, show
-from bokeh.layouts import row, column, gridplot
+from bokeh.layouts import row, column, gridplot, widgetbox
 from bokeh.models.widgets import Tabs, Panel
-from bokeh.models import Slider, Select
+from bokeh.models import Slider, Select, callbacks
 from bokeh.models import CategoricalColorMapper
 from bokeh.palettes import Spectral6
 from bokeh.models import ColumnDataSource, CDSView, GroupFilter, CustomJS, Select, Range1d, Dropdown
 from bokeh.models import HoverTool
-
 
 df_covid = pd.read_csv('dataset.csv')
 df_covid.info()
@@ -33,22 +34,18 @@ df_covid = pd.read_csv('dataset.csv', parse_dates=['Date'])
 df_covid.info()
 
 df_covid.head()
-
 df_covid.shape
 
-print("Before Delete Duplicate: ",len(df_covid))
-print("After Delete Duplicates: ",len(df_covid.drop_duplicates()))
+df_covid['Date'] = pd.to_datetime(df_covid['Date'])
 
-miss_values = df_covid.isnull().sum()
-miss_values
-
-df_covid.Location.unique()
+location_list = list(df_covid['Location'].unique())
 
 df_covid.rename(columns={'Total Active Cases':'Total_Active_Cases'}, inplace=True)
-
 df_covid.rename(columns={'Total Deaths':'Total_Deaths'}, inplace=True)
 df_covid.rename(columns={'New Cases':'New_Cases'}, inplace=True)
 
+
+#Output file
 output_file('no1.html', title='hasil visualisasi')
 
 covid_cds = ColumnDataSource(df_covid)
@@ -82,6 +79,7 @@ Kalimantan_Timur_cds = ColumnDataSource(Kalimantan_Timur)
 # DKI_Jakarta_cds = ColumnDataSource(DKI_Jakarta)
 
 #create views
+# Location_view = CDSView(source = covid_cds, filters=[GroupFilter(column_name='Location',group='Location')])
 DKI_Jakarta_view = CDSView(source = covid_cds, filters=[GroupFilter(column_name='Location',group='DKI Jakarta')])
 Jawa_Barat_view = CDSView(source = covid_cds, filters=[GroupFilter(column_name='Location',group='Jawa Barat')])
 Daerah_Istimewa_Yogyakarta_view = CDSView(source = covid_cds, filters=[GroupFilter(column_name='Location',group='Daerah Istimewa Yogyakarta')])
@@ -94,7 +92,7 @@ Kalimantan_Timur_view = CDSView(source = covid_cds, filters=[GroupFilter(column_
 fig_new_cases = figure(x_axis_type='datetime',
            plot_height=400, plot_width=800,
            title='Visualisasi Covid',
-           x_axis_label='Date', y_axis_label='New Cases')
+           x_axis_label='Date', y_axis_label='New Cases', y_axis_type="linear")
 
 fig_active = figure(x_axis_type='datetime',
            plot_height=400, plot_width=800,
@@ -109,98 +107,125 @@ fig_dead = figure(x_axis_type='datetime',
 # Connect to and draw the data
 
 # fig active cases
-fig_new_cases.step('Date', 'New_Cases', 
-              color='red', legend_label='DKI Jakarta',
-              source=covid_cds, view=DKI_Jakarta_view)
-fig_new_cases.step('Date', 'New_Cases', 
-              color='orange', legend_label='Jawa Barat',
-              source=covid_cds, view=Jawa_Barat_view)
-fig_new_cases.step('Date', 'New_Cases', 
-              color='blue', legend_label='Daerah_Istimewa_Yogyakarta',
-              source=covid_cds, view=Daerah_Istimewa_Yogyakarta_view)
-fig_new_cases.step('Date', 'New_Cases', 
-              color='green', legend_label='Riau',
-              source=covid_cds, view=Riau_view)
-fig_new_cases.step('Date', 'New_Cases', 
-              color='purple', legend_label='Banten',
-              source=covid_cds, view=Banten_view)
-fig_new_cases.step('Date', 'New_Cases', 
-              color='yellow', legend_label='Kalimantan Timur',
-              source=covid_cds, view=Kalimantan_Timur_view)
+# fig_new_cases.circle('Date', 'New_Cases', 
+#               color='red', legend_label=df_covid['Location'],
+#               source=covid_cds, view=Location_view)
+
+# fig_new_cases.circle('Date', 'New_Cases', 
+#               color='blue', legend_label='Daerah Istimewa Yogyakarta',
+#               source=covid_cds, view=Daerah_Istimewa_Yogyakarta_view)
+# fig_new_cases.circle('Date', 'New_Cases', 
+#               color='green', legend_label='Riau',
+#               source=covid_cds, view=Riau_view)
+# fig_new_cases.circle('Date', 'New_Cases', 
+#               color='purple', legend_label='Banten',
+#               source=covid_cds, view=Banten_view)
+# fig_new_cases.circle('Date', 'New_Cases', 
+#               color='yellow', legend_label='Kalimantan Timur',
+#               source=covid_cds, view=Kalimantan_Timur_view)
 
 # fig active cases
-fig_active.step('Date', 'Total_Active_Cases', 
+fig_active.circle('Date', 'Total_Active_Cases', 
               color='red', legend_label='DKI Jakarta',
               source=covid_cds, view=DKI_Jakarta_view)
-fig_active.step('Date', 'Total_Active_Cases', 
+fig_active.circle('Date', 'Total_Active_Cases', 
               color='orange', legend_label='Jawa Barat',
               source=covid_cds, view=Jawa_Barat_view)
-fig_active.step('Date', 'Total_Active_Cases', 
-              color='blue', legend_label='Daerah_Istimewa_Yogyakarta',
+fig_active.circle('Date', 'Total_Active_Cases', 
+              color='blue', legend_label='Daerah Istimewa Yogyakarta',
               source=covid_cds, view=Daerah_Istimewa_Yogyakarta_view)
-fig_active.step('Date', 'Total_Active_Cases', 
+fig_active.circle('Date', 'Total_Active_Cases', 
               color='green', legend_label='Riau',
               source=covid_cds, view=Riau_view)
-fig_active.step('Date', 'Total_Active_Cases', 
+fig_active.circle('Date', 'Total_Active_Cases', 
               color='purple', legend_label='Banten',
               source=covid_cds, view=Banten_view)
-fig_active.step('Date', 'Total_Active_Cases', 
+fig_active.circle('Date', 'Total_Active_Cases', 
               color='yellow', legend_label='Kalimantan Timur',
               source=covid_cds, view=Kalimantan_Timur_view)
 
 # fig Deaths
-fig_dead.step('Date', 'Total_Deaths', 
+fig_dead.circle('Date', 'Total_Deaths', 
               color='red', legend_label='DKI Jakarta',
               source=covid_cds, view=DKI_Jakarta_view)
-fig_dead.step('Date', 'Total_Deaths', 
+fig_dead.circle('Date', 'Total_Deaths', 
               color='orange', legend_label='Jawa Barat',
               source=covid_cds, view=Jawa_Barat_view)
-fig_dead.step('Date', 'Total_Deaths', 
-              color='blue', legend_label='Daerah_Istimewa_Yogyakarta',
+fig_dead.circle('Date', 'Total_Deaths', 
+              color='blue', legend_label='Daerah Istimewa Yogyakarta',
               source=covid_cds, view=Daerah_Istimewa_Yogyakarta_view)
-fig_dead.step('Date', 'Total_Deaths', 
+fig_dead.circle('Date', 'Total_Deaths', 
               color='green', legend_label='Riau',
               source=covid_cds, view=Riau_view)
-fig_dead.step('Date', 'Total_Deaths', 
+fig_dead.circle('Date', 'Total_Deaths', 
               color='purple', legend_label='Banten',
               source=covid_cds, view=Banten_view)
-fig_dead.step('Date', 'Total_Deaths', 
+fig_dead.circle('Date', 'Total_Deaths', 
               color='yellow', legend_label='Kalimantan Timur',
               source=covid_cds, view=Kalimantan_Timur_view)
 
 # Format the tooltip
 tooltips_new_cases = [
-            ('Location','@Location'),
             ('New Cases', '@New_Cases'),
+            ('Date','@Date{%F}')
             ]
 tooltips_active = [
             ('Location','@Location'),
             ('Total Active Cases', '@Total_Active_Cases'),
+            ('Date','@Date{%F}'),
            ]
 
 tooltips_dead = [
             ('Location','@Location'),
             ('Total Deaths', '@Total_Deaths'),
+            ('Date','@Date{%F}'),
             ]
 
 
 # Add the HoverTool to the figure
-fig_new_cases.add_tools(HoverTool(tooltips=tooltips_dead))
-fig_active.add_tools(HoverTool(tooltips=tooltips_active))
-fig_dead.add_tools(HoverTool(tooltips=tooltips_new_cases))
+fig_new_cases.add_tools(HoverTool(tooltips=tooltips_new_cases, formatters={'@Date': 'datetime'}))
+fig_active.add_tools(HoverTool(tooltips=tooltips_active, formatters={'@Date': 'datetime'}))
+fig_dead.add_tools(HoverTool(tooltips=tooltips_dead, formatters={'@Date': 'datetime'}))
 
-#menu dropdown
-menu = [("Total Cases","tooltips_new_cases"),("Deaths","tooltips_dead")]
-dropdown = Dropdown(button_type = "success", menu = menu)
-dropdown.js_on_event("menu_item_click", CustomJS(code="console.log('dropdown:'+this.item, this.toString())"))
+cols1 = df_covid[['Date','Location','New_Cases']]
+cols2 = cols1[cols1['Location']=='DKI Jakarta']
+Overall = ColumnDataSource(data=cols1)
+Curr = ColumnDataSource(data=cols2)
 
-# dropdown
-#panel_new_cases = Panel(child = fig_new_cases, title='New Cases')
-#panel_active = Panel(child = fig_active, title='Active Cases')
-#panel_dead = Panel(child = fig_dead, title='Deaths')
+#Callback 
+callback = CustomJS(args=dict(source=Overall, sc=Curr), code="""
+                    var f = cb_obj.value;
+                    sc.data['Date'] = [];
+                    sc.data['New_Cases'] = [];
+                    for(var i = 0; i <= source.get_length(); i++){
+                        if (source.data['Location'][i] == f){
+                            sc.data['Date'].push(source.data['Date'][i]);
+                            sc.data['New_Cases'].push(source.data['New_Cases'][i]);
+                        }
+                    }
+                    sc.change.emit();
+                    """)
+menu = Select(options=location_list, value='DKI Jakarta', title='Location')     #menu dropdown list
+fig_new_cases.circle(x='Date',y='New_Cases',color='red', source=Curr)
+menu.js_on_change('value', callback)
+
+#create layout
+layout = column(menu, fig_new_cases)
+
+# tab panel
+panel_new_cases = Panel(child = layout, title='New Cases')
+panel_active = Panel(child = fig_active, title='Active Cases')
+panel_dead = Panel(child = fig_dead, title='Deaths')
 
 #assign tabs
-# tabs = Tabs(tabs=[panel_new_cases, panel_active, panel_dead])
+tabs = Tabs(tabs=[panel_new_cases, panel_active, panel_dead])
 
 # Visualize
-show(dropdown)
+show(tabs) #not localhost
+
+#With localhost
+# curdoc().add_root(tabs) 
+
+#Cara menjalankan
+## Setelah run
+## ketik 'bokeh serve --show myapp.py' di terminal
