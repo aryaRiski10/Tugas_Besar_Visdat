@@ -48,7 +48,7 @@ df_covid.rename(columns={'New Cases':'New_Cases'}, inplace=True)
 
 
 #Output file
-output_file('no1.html', title='hasil visualisasi')
+output_file('result_visualisasi.html', title='hasil visualisasi')
 
 covid_cds = ColumnDataSource(df_covid)
 
