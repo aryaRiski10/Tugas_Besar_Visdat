@@ -26,6 +26,8 @@ from bokeh.models import CategoricalColorMapper
 from bokeh.palettes import Spectral6
 from bokeh.models import ColumnDataSource, CDSView, GroupFilter, CustomJS, Select, Range1d, Dropdown
 from bokeh.models import HoverTool
+from bokeh.models.widgets.sliders import DateRangeSlider
+
 
 df_covid = pd.read_csv('dataset.csv')
 df_covid.info()
@@ -99,10 +101,10 @@ fig_active = figure(x_axis_type='datetime',
            title='Visualisasi Covid',
            x_axis_label='Date', y_axis_label='Total Active Cases')
 
-fig_dead = figure(x_axis_type='datetime',
+fig_death = figure(x_axis_type='datetime',
            plot_height=400, plot_width=800,
            title='Visualisasi Covid',
-           x_axis_label='Date', y_axis_label='Total Deaths')
+           x_axis_label='Date', y_axis_label='Total Deaths',y_axis_type="linear")
 
 # Connect to and draw the data
 
@@ -144,25 +146,25 @@ fig_active.circle('Date', 'Total_Active_Cases',
               color='yellow', legend_label='Kalimantan Timur',
               source=covid_cds, view=Kalimantan_Timur_view)
 
-# fig Deaths
-fig_dead.circle('Date', 'Total_Deaths', 
-              color='red', legend_label='DKI Jakarta',
-              source=covid_cds, view=DKI_Jakarta_view)
-fig_dead.circle('Date', 'Total_Deaths', 
-              color='orange', legend_label='Jawa Barat',
-              source=covid_cds, view=Jawa_Barat_view)
-fig_dead.circle('Date', 'Total_Deaths', 
-              color='blue', legend_label='Daerah Istimewa Yogyakarta',
-              source=covid_cds, view=Daerah_Istimewa_Yogyakarta_view)
-fig_dead.circle('Date', 'Total_Deaths', 
-              color='green', legend_label='Riau',
-              source=covid_cds, view=Riau_view)
-fig_dead.circle('Date', 'Total_Deaths', 
-              color='purple', legend_label='Banten',
-              source=covid_cds, view=Banten_view)
-fig_dead.circle('Date', 'Total_Deaths', 
-              color='yellow', legend_label='Kalimantan Timur',
-              source=covid_cds, view=Kalimantan_Timur_view)
+# fig Deaths multiple renderer
+# fig_dead.vbar(x='Date', top='Total_Deaths', 
+#               color='red', legend_label='DKI Jakarta',
+#               source=covid_cds, view=DKI_Jakarta_view)
+# fig_dead.vbar(x='Date', top='Total_Deaths', 
+#               color='orange', legend_label='Jawa Barat',
+#               source=covid_cds, view=Jawa_Barat_view)
+# fig_dead.vbar(x='Date', top='Total_Deaths', 
+#               color='blue', legend_label='Daerah Istimewa Yogyakarta',
+#               source=covid_cds, view=Daerah_Istimewa_Yogyakarta_view)
+# fig_dead.vbar(x='Date', top='Total_Deaths', 
+#               color='green', legend_label='Riau',
+#               source=covid_cds, view=Riau_view)
+# fig_dead.vbar(x='Date', top='Total_Deaths', 
+#               color='purple', legend_label='Banten',
+#               source=covid_cds, view=Banten_view)
+# fig_dead.vbar(x='Date', top='Total_Deaths', 
+#               color='yellow', legend_label='Kalimantan Timur',
+#               source=covid_cds, view=Kalimantan_Timur_view, width=2)
 
 # Format the tooltip
 tooltips_new_cases = [
@@ -175,7 +177,7 @@ tooltips_active = [
             ('Date','@Date{%F}'),
            ]
 
-tooltips_dead = [
+tooltips_death = [
             ('Location','@Location'),
             ('Total Deaths', '@Total_Deaths'),
             ('Date','@Date{%F}'),
@@ -185,15 +187,15 @@ tooltips_dead = [
 # Add the HoverTool to the figure
 fig_new_cases.add_tools(HoverTool(tooltips=tooltips_new_cases, formatters={'@Date': 'datetime'}))
 fig_active.add_tools(HoverTool(tooltips=tooltips_active, formatters={'@Date': 'datetime'}))
-fig_dead.add_tools(HoverTool(tooltips=tooltips_dead, formatters={'@Date': 'datetime'}))
+fig_death.add_tools(HoverTool(tooltips=tooltips_death, formatters={'@Date': 'datetime'}))
 
-cols1 = df_covid[['Date','Location','New_Cases']]
-cols2 = cols1[cols1['Location']=='DKI Jakarta']
-Overall = ColumnDataSource(data=cols1)
-Curr = ColumnDataSource(data=cols2)
+cols1_new_cases = df_covid[['Date','Location','New_Cases']]
+cols2_new_cases = cols1_new_cases[cols1_new_cases['Location']=='DKI Jakarta']
+col1_new_cases_cds = ColumnDataSource(data=cols1_new_cases)
+col2_new_cases_cds = ColumnDataSource(data=cols2_new_cases)
 
-#Callback 
-callback = CustomJS(args=dict(source=Overall, sc=Curr), code="""
+#Callback for new cases
+callback_new_cases = CustomJS(args=dict(source=col1_new_cases_cds, sc=col2_new_cases_cds), code="""
                     var f = cb_obj.value;
                     sc.data['Date'] = [];
                     sc.data['New_Cases'] = [];
@@ -205,23 +207,64 @@ callback = CustomJS(args=dict(source=Overall, sc=Curr), code="""
                     }
                     sc.change.emit();
                     """)
-menu = Select(options=location_list, value='DKI Jakarta', title='Location')     #menu dropdown list
-fig_new_cases.circle(x='Date',y='New_Cases',color='red', source=Curr)
-menu.js_on_change('value', callback)
+
+menu_1 = Select(options=location_list, value='DKI Jakarta', title='Location')     #menu dropdown list
+fig_new_cases.circle(x='Date',y='New_Cases',color='red', source=col2_new_cases_cds)
+fig_new_cases.line('Date','New_Cases',color='red', source=col2_new_cases_cds)
+fig_new_cases.vbar(x='Date',top='New_Cases',color='red', source=col2_new_cases_cds, width=0.5, bottom=0)
+menu_1.js_on_change('value', callback_new_cases)
+
+cols1_death = df_covid[['Date','Location','Total_Deaths']]
+cols2_death = cols1_death[cols1_death['Location']=='DKI Jakarta']
+col1_death_cds = ColumnDataSource(data=cols1_death)
+col2_death_cds = ColumnDataSource(data=cols2_death)
+#Callback for death
+callback_death = CustomJS(args=dict(source=col1_death_cds, sc=col2_death_cds), code="""
+                    var f = cb_obj.value;
+                    sc.data['Date'] = [];
+                    sc.data['Total_Deaths'] = [];
+                    for(var i = 0; i <= source.get_length(); i++){
+                        if (source.data['Location'][i] == f){
+                            sc.data['Date'].push(source.data['Date'][i]);
+                            sc.data['Total_Deaths'].push(source.data['Total_Deaths'][i]);
+                        }
+                    }
+                    sc.change.emit();
+                    """)
+
+menu_2 = Select(options=location_list, value='DKI Jakarta', title='Location')     #menu dropdown list
+# fig_death.circle('Date','Total_Deaths',color='red', source=col2_death_cds)
+fig_death.line('Date','Total_Deaths',color='red', source=col2_death_cds)
+menu_2.js_on_change('value', callback_death)
+
+#range datetime slider for new cases
+slider_range_datetime_newcases = DateRangeSlider(value=(min(df_covid['Date']), max(df_covid['Date'])),
+                                        start=min(df_covid['Date']),end=max(df_covid['Date'])
+                                        )
+slider_range_datetime_newcases.js_link('value', fig_new_cases.x_range, 'start', attr_selector=0)
+slider_range_datetime_newcases.js_link('value', fig_new_cases.x_range, 'end', attr_selector=1)
+
+#range datetime slider for deaths
+slider_range_datetime_deaths = DateRangeSlider(value=(min(df_covid['Date']), max(df_covid['Date'])),
+                                        start=min(df_covid['Date']),end=max(df_covid['Date'])
+                                        )
+slider_range_datetime_deaths.js_link('value', fig_death.x_range, 'start', attr_selector=0)
+slider_range_datetime_deaths.js_link('value', fig_death.x_range, 'end', attr_selector=1)
 
 #create layout
-layout = column(menu, fig_new_cases)
+layout_1 = column(menu_1, slider_range_datetime_newcases, fig_new_cases)
+layout_2 = column(menu_2, slider_range_datetime_deaths, fig_death)
 
 # tab panel
-panel_new_cases = Panel(child = layout, title='New Cases')
+panel_new_cases = Panel(child = layout_1, title='New Cases')
 panel_active = Panel(child = fig_active, title='Active Cases')
-panel_dead = Panel(child = fig_dead, title='Deaths')
+panel_dead = Panel(child = layout_2, title='Deaths')
 
 #assign tabs
-tabs = Tabs(tabs=[panel_new_cases, panel_active, panel_dead])
+main = Tabs(tabs=[panel_new_cases, panel_active, panel_dead])
 
 # Visualize
-show(tabs) #not localhost
+show(main) #not localhost
 
 #With localhost
 # curdoc().add_root(tabs) 
