@@ -217,10 +217,10 @@ panel_dead = Panel(child = layout_2, title='Deaths')
 main = Tabs(tabs=[panel_new_cases, panel_active, panel_dead])
 
 # Visualize
-show(main) #not localhost
+# show(main) #not localhost
 
 #With localhost
-# curdoc().add_root(tabs) 
+curdoc().add_root(main) 
 
 #Cara menjalankan
 ## Setelah run
