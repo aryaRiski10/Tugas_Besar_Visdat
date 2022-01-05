@@ -29,10 +29,10 @@ from bokeh.models import HoverTool
 from bokeh.models.widgets.sliders import DateRangeSlider
 
 
-df_covid = pd.read_csv('dataset.csv')
+df_covid = pd.read_csv('data/dataset.csv')
 df_covid.info()
 
-df_covid = pd.read_csv('dataset.csv', parse_dates=['Date'])
+df_covid = pd.read_csv('data/dataset.csv', parse_dates=['Date'])
 df_covid.info()
 
 df_covid.head()
