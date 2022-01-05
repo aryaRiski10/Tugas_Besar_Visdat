@@ -70,18 +70,7 @@ Banten_cds = ColumnDataSource(Banten)
 Kalimantan_Timur = df_covid[df_covid['Location'] == 'Kalimantan Timur']
 Kalimantan_Timur_cds = ColumnDataSource(Kalimantan_Timur)
 
-#create view
-# DKI_Jakarta = df_covid[df_covid['Location'] == 'DKI Jakarta']
-# DKI_Jakarta_cds = ColumnDataSource(DKI_Jakarta)
-# DKI_Jakarta = df_covid[df_covid['Location'] == 'DKI Jakarta']
-# DKI_Jakarta_cds = ColumnDataSource(DKI_Jakarta)
-# DKI_Jakarta = df_covid[df_covid['Location'] == 'DKI Jakarta']
-# DKI_Jakarta_cds = ColumnDataSource(DKI_Jakarta)
-# DKI_Jakarta = df_covid[df_covid['Location'] == 'DKI Jakarta']
-# DKI_Jakarta_cds = ColumnDataSource(DKI_Jakarta)
-
 #create views
-# Location_view = CDSView(source = covid_cds, filters=[GroupFilter(column_name='Location',group='Location')])
 DKI_Jakarta_view = CDSView(source = covid_cds, filters=[GroupFilter(column_name='Location',group='DKI Jakarta')])
 Jawa_Barat_view = CDSView(source = covid_cds, filters=[GroupFilter(column_name='Location',group='Jawa Barat')])
 Daerah_Istimewa_Yogyakarta_view = CDSView(source = covid_cds, filters=[GroupFilter(column_name='Location',group='Daerah Istimewa Yogyakarta')])
@@ -107,25 +96,6 @@ fig_death = figure(x_axis_type='datetime',
            x_axis_label='Date', y_axis_label='Total Deaths',y_axis_type="linear")
 
 # Connect to and draw the data
-
-# fig active cases
-# fig_new_cases.circle('Date', 'New_Cases', 
-#               color='red', legend_label=df_covid['Location'],
-#               source=covid_cds, view=Location_view)
-
-# fig_new_cases.circle('Date', 'New_Cases', 
-#               color='blue', legend_label='Daerah Istimewa Yogyakarta',
-#               source=covid_cds, view=Daerah_Istimewa_Yogyakarta_view)
-# fig_new_cases.circle('Date', 'New_Cases', 
-#               color='green', legend_label='Riau',
-#               source=covid_cds, view=Riau_view)
-# fig_new_cases.circle('Date', 'New_Cases', 
-#               color='purple', legend_label='Banten',
-#               source=covid_cds, view=Banten_view)
-# fig_new_cases.circle('Date', 'New_Cases', 
-#               color='yellow', legend_label='Kalimantan Timur',
-#               source=covid_cds, view=Kalimantan_Timur_view)
-
 # fig active cases
 fig_active.circle('Date', 'Total_Active_Cases', 
               color='red', legend_label='DKI Jakarta',
@@ -145,26 +115,6 @@ fig_active.circle('Date', 'Total_Active_Cases',
 fig_active.circle('Date', 'Total_Active_Cases', 
               color='yellow', legend_label='Kalimantan Timur',
               source=covid_cds, view=Kalimantan_Timur_view)
-
-# fig Deaths multiple renderer
-# fig_dead.vbar(x='Date', top='Total_Deaths', 
-#               color='red', legend_label='DKI Jakarta',
-#               source=covid_cds, view=DKI_Jakarta_view)
-# fig_dead.vbar(x='Date', top='Total_Deaths', 
-#               color='orange', legend_label='Jawa Barat',
-#               source=covid_cds, view=Jawa_Barat_view)
-# fig_dead.vbar(x='Date', top='Total_Deaths', 
-#               color='blue', legend_label='Daerah Istimewa Yogyakarta',
-#               source=covid_cds, view=Daerah_Istimewa_Yogyakarta_view)
-# fig_dead.vbar(x='Date', top='Total_Deaths', 
-#               color='green', legend_label='Riau',
-#               source=covid_cds, view=Riau_view)
-# fig_dead.vbar(x='Date', top='Total_Deaths', 
-#               color='purple', legend_label='Banten',
-#               source=covid_cds, view=Banten_view)
-# fig_dead.vbar(x='Date', top='Total_Deaths', 
-#               color='yellow', legend_label='Kalimantan Timur',
-#               source=covid_cds, view=Kalimantan_Timur_view, width=2)
 
 # Format the tooltip
 tooltips_new_cases = [
