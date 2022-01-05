@@ -6,4 +6,4 @@
 </ol>
 
 <h2>Link Deployment</h2>
-<p>https://aryariski10.github.io/Tugas_Besar_Visdat/result_visualisasi.html</p>
+<p>https://bokeh-deployment-visdat.herokuapp.com/myapp</p>
