@@ -144,7 +144,7 @@ cols2_new_cases = cols1_new_cases[cols1_new_cases['Location']=='DKI Jakarta']
 col1_new_cases_cds = ColumnDataSource(data=cols1_new_cases)
 col2_new_cases_cds = ColumnDataSource(data=cols2_new_cases)
 
-#Callback for new cases
+# Callback for new cases
 callback_new_cases = CustomJS(args=dict(source=col1_new_cases_cds, sc=col2_new_cases_cds), code="""
                     var f = cb_obj.value;
                     sc.data['Date'] = [];
@@ -168,7 +168,8 @@ cols1_death = df_covid[['Date','Location','Total_Deaths']]
 cols2_death = cols1_death[cols1_death['Location']=='DKI Jakarta']
 col1_death_cds = ColumnDataSource(data=cols1_death)
 col2_death_cds = ColumnDataSource(data=cols2_death)
-#Callback for death
+
+# Callback for death
 callback_death = CustomJS(args=dict(source=col1_death_cds, sc=col2_death_cds), code="""
                     var f = cb_obj.value;
                     sc.data['Date'] = [];
@@ -183,29 +184,31 @@ callback_death = CustomJS(args=dict(source=col1_death_cds, sc=col2_death_cds), c
                     """)
 
 menu_2 = Select(options=location_list, value='DKI Jakarta', title='Location')     #menu dropdown list
-# fig_death.circle('Date','Total_Deaths',color='red', source=col2_death_cds)
+fig_death.vbar(x='Date',top='Total_Deaths',color='red', source=col2_death_cds, width=3, bottom=0)
 fig_death.line('Date','Total_Deaths',color='red', source=col2_death_cds)
 menu_2.js_on_change('value', callback_death)
 
-#range datetime slider for new cases
+#Range datetime slider for new cases
 slider_range_datetime_newcases = DateRangeSlider(value=(min(df_covid['Date']), max(df_covid['Date'])),
-                                        start=min(df_covid['Date']),end=max(df_covid['Date'])
+                                        start=min(df_covid['Date']),end=max(df_covid['Date']),width=300
                                         )
 slider_range_datetime_newcases.js_link('value', fig_new_cases.x_range, 'start', attr_selector=0)
 slider_range_datetime_newcases.js_link('value', fig_new_cases.x_range, 'end', attr_selector=1)
 
-#range datetime slider for deaths
+#Range datetime slider for deaths
 slider_range_datetime_deaths = DateRangeSlider(value=(min(df_covid['Date']), max(df_covid['Date'])),
-                                        start=min(df_covid['Date']),end=max(df_covid['Date'])
+                                        start=min(df_covid['Date']),end=max(df_covid['Date']),width=300
                                         )
 slider_range_datetime_deaths.js_link('value', fig_death.x_range, 'start', attr_selector=0)
 slider_range_datetime_deaths.js_link('value', fig_death.x_range, 'end', attr_selector=1)
 
-#create layout
-layout_1 = column(menu_1, slider_range_datetime_newcases, fig_new_cases)
-layout_2 = column(menu_2, slider_range_datetime_deaths, fig_death)
+#Create layout
+lcol_1 = column(menu_1, slider_range_datetime_newcases)
+lcol_2 = column(menu_2, slider_range_datetime_deaths)
+layout_1 = row(lcol_1,fig_new_cases)
+layout_2 = row(lcol_2, fig_death)
 
-# tab panel
+#Tab panel
 panel_new_cases = Panel(child = layout_1, title='New Cases')
 panel_active = Panel(child = fig_active, title='Active Cases')
 panel_dead = Panel(child = layout_2, title='Deaths')
