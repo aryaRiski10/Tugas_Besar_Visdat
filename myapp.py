@@ -8,6 +8,7 @@ Original file is located at
 """
 
 # Data handling
+from bokeh.core.enums import Location
 from bokeh.core.property.dataspec import value
 from bokeh.models.layouts import Column
 import pandas as pd
@@ -21,7 +22,7 @@ from bokeh.io import show,curdoc
 from bokeh.plotting import figure, show
 from bokeh.layouts import row, column, gridplot, widgetbox
 from bokeh.models.widgets import Tabs, Panel
-from bokeh.models import Slider, Select, callbacks
+from bokeh.models import Slider, Select, callbacks, TextInput
 from bokeh.models import CategoricalColorMapper
 from bokeh.palettes import Spectral6
 from bokeh.models import ColumnDataSource, CDSView, GroupFilter, CustomJS, Select, Range1d, Dropdown
@@ -81,8 +82,7 @@ Kalimantan_Timur_view = CDSView(source = covid_cds, filters=[GroupFilter(column_
 
 # Create and configure the figure
 fig_new_cases = figure(x_axis_type='datetime',
-           plot_height=400, plot_width=800,
-           title='Visualisasi Covid',
+           plot_height=400, plot_width=800,title='Visualisasi Covid for DKI Jakarta',
            x_axis_label='Date', y_axis_label='New Cases', y_axis_type="linear")
 
 fig_active = figure(x_axis_type='datetime',
@@ -91,8 +91,7 @@ fig_active = figure(x_axis_type='datetime',
            x_axis_label='Date', y_axis_label='Total Active Cases')
 
 fig_death = figure(x_axis_type='datetime',
-           plot_height=400, plot_width=800,
-           title='Visualisasi Covid',
+           plot_height=400, plot_width=800,title='Visualisasi Covid for DKI Jakarta',
            x_axis_label='Date', y_axis_label='Total Deaths',y_axis_type="linear")
 
 # Connect to and draw the data
@@ -139,18 +138,20 @@ fig_new_cases.add_tools(HoverTool(tooltips=tooltips_new_cases, formatters={'@Dat
 fig_active.add_tools(HoverTool(tooltips=tooltips_active, formatters={'@Date': 'datetime'}))
 fig_death.add_tools(HoverTool(tooltips=tooltips_death, formatters={'@Date': 'datetime'}))
 
+
 cols1_new_cases = df_covid[['Date','Location','New_Cases']]
 cols2_new_cases = cols1_new_cases[cols1_new_cases['Location']=='DKI Jakarta']
 col1_new_cases_cds = ColumnDataSource(data=cols1_new_cases)
 col2_new_cases_cds = ColumnDataSource(data=cols2_new_cases)
 
 # Callback for new cases
-callback_new_cases = CustomJS(args=dict(source=col1_new_cases_cds, sc=col2_new_cases_cds), code="""
+callback_new_cases = CustomJS(args=dict(source=col1_new_cases_cds, sc=col2_new_cases_cds, title=fig_new_cases.title), code="""
                     var f = cb_obj.value;
                     sc.data['Date'] = [];
                     sc.data['New_Cases'] = [];
                     for(var i = 0; i <= source.get_length(); i++){
                         if (source.data['Location'][i] == f){
+                            title.text = 'Visualization Covid for '+source.data['Location'][i]
                             sc.data['Date'].push(source.data['Date'][i]);
                             sc.data['New_Cases'].push(source.data['New_Cases'][i]);
                         }
@@ -158,11 +159,11 @@ callback_new_cases = CustomJS(args=dict(source=col1_new_cases_cds, sc=col2_new_c
                     sc.change.emit();
                     """)
 
-menu_1 = Select(options=location_list, value='DKI Jakarta', title='Location')     #menu dropdown list
+location_select1 = Select(options=location_list, value='DKI Jakarta', title='Location')     #menu dropdown list
 fig_new_cases.circle(x='Date',y='New_Cases',color='red', source=col2_new_cases_cds)
 fig_new_cases.line('Date','New_Cases',color='red', source=col2_new_cases_cds)
 fig_new_cases.vbar(x='Date',top='New_Cases',color='red', source=col2_new_cases_cds, width=0.5, bottom=0)
-menu_1.js_on_change('value', callback_new_cases)
+location_select1.js_on_change('value', callback_new_cases)
 
 cols1_death = df_covid[['Date','Location','Total_Deaths']]
 cols2_death = cols1_death[cols1_death['Location']=='DKI Jakarta']
@@ -170,12 +171,14 @@ col1_death_cds = ColumnDataSource(data=cols1_death)
 col2_death_cds = ColumnDataSource(data=cols2_death)
 
 # Callback for death
-callback_death = CustomJS(args=dict(source=col1_death_cds, sc=col2_death_cds), code="""
+callback_death = CustomJS(args=dict(source=col1_death_cds, sc=col2_death_cds, title=fig_death.title), code="""
                     var f = cb_obj.value;
                     sc.data['Date'] = [];
                     sc.data['Total_Deaths'] = [];
+                    title.text = 'Visualization Covid for DKI Jakarta'
                     for(var i = 0; i <= source.get_length(); i++){
                         if (source.data['Location'][i] == f){
+                            title.text = 'Visualization Covid for '+ source.data['Location'][i]
                             sc.data['Date'].push(source.data['Date'][i]);
                             sc.data['Total_Deaths'].push(source.data['Total_Deaths'][i]);
                         }
@@ -183,10 +186,10 @@ callback_death = CustomJS(args=dict(source=col1_death_cds, sc=col2_death_cds), c
                     sc.change.emit();
                     """)
 
-menu_2 = Select(options=location_list, value='DKI Jakarta', title='Location')     #menu dropdown list
+location_select2 = Select(options=location_list, value='DKI Jakarta', title='Location')     #menu dropdown list
 fig_death.vbar(x='Date',top='Total_Deaths',color='red', source=col2_death_cds, width=3, bottom=0)
 fig_death.line('Date','Total_Deaths',color='red', source=col2_death_cds)
-menu_2.js_on_change('value', callback_death)
+location_select2.js_on_change('value', callback_death)
 
 #Range datetime slider for new cases
 slider_range_datetime_newcases = DateRangeSlider(value=(min(df_covid['Date']), max(df_covid['Date'])),
@@ -203,8 +206,8 @@ slider_range_datetime_deaths.js_link('value', fig_death.x_range, 'start', attr_s
 slider_range_datetime_deaths.js_link('value', fig_death.x_range, 'end', attr_selector=1)
 
 #Create layout
-lcol_1 = column(menu_1, slider_range_datetime_newcases)
-lcol_2 = column(menu_2, slider_range_datetime_deaths)
+lcol_1 = column(location_select1, slider_range_datetime_newcases)
+lcol_2 = column(location_select2, slider_range_datetime_deaths)
 layout_1 = row(lcol_1,fig_new_cases)
 layout_2 = row(lcol_2, fig_death)
 
